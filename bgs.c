@@ -37,20 +37,17 @@ static void updategeom(void);
 
 /* variables */
 int sx, sy, sw, sh;
+int depth, screen;
 Bool running = True;
 Display *dpy;
 Window root;
 Visual *vis;
 Colormap cm;
-int nmonitor;
+Pixmap pm;
+int nmonitor, nimage;
 Monitor monitors[8];
 Imlib_Image images[LENGTH(monitors)];
 Imlib_Image buffer;
-uint nimage;
-int depth;
-int screen;
-int bgcolor;
-Pixmap pm;
 
 /* function implementations */
 void
@@ -79,14 +76,13 @@ configurenotify(XEvent *e) {
 		buffer = imlib_create_image(sw, sh);
 		XFreePixmap(dpy, pm);
 		pm = XCreatePixmap(dpy, root, sw, sh, depth);
-		imlib_context_set_drawable(pm);
 		createbg();
 		drawbg();
 	}
 }
 
 void
-createbg() {
+createbg(void) {
 	int i, j, w, h, tmp;
 	Imlib_Image tmpimg;
 
@@ -119,7 +115,7 @@ die(const char *errstr, ...) {
 	exit(EXIT_FAILURE);
 }
 
-void drawbg() {
+void drawbg(void) {
 	imlib_context_set_image(buffer);
 	imlib_context_set_drawable(root);
 	imlib_render_image_on_drawable(0, 0);
@@ -164,7 +160,6 @@ setup(char *paths[], int c) {
 	cm = DefaultColormap(dpy, screen);
 	root = RootWindow(dpy, screen);
 	XSelectInput(dpy, root, StructureNotifyMask);
-	bgcolor = BlackPixel(dpy, screen);
 	sx = sy = 0;
 	sw = DisplayWidth(dpy, screen);
 	sh = DisplayHeight(dpy, screen);
@@ -175,7 +170,6 @@ setup(char *paths[], int c) {
 	imlib_context_set_display(dpy);
 	imlib_context_set_visual(vis);
 	imlib_context_set_colormap(cm);
-	imlib_context_set_drawable(pm);
 	buffer = imlib_create_image(sw, sh);
 }
 
@@ -223,5 +217,5 @@ main(int argc, char *argv[]) {
 	cleanup();
 
 	XCloseDisplay(dpy);
-	return 0;
+	return EXIT_SUCCESS;
 }
