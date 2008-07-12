@@ -13,16 +13,8 @@
 #endif
 
 /* macros */
-#define MAX(a, b)       ((a) > (b) ? (a) : (b))
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))
-#define BUTTONMASK      (ButtonPressMask|ButtonReleaseMask)
-#define CLEANMASK(mask) (mask & ~(numlockmask|LockMask))
 #define LENGTH(x)       (sizeof x / sizeof x[0])
-#define MAXTAGLEN       16
-#define MOUSEMASK       (BUTTONMASK|PointerMotionMask)
-#define TAGMASK         ((int)((1LL << LENGTH(tags)) - 1))
-#define TEXTW(x)        (textnw(x, strlen(x)) + dc.font.height)
-#define ISVISIBLE(x)    (x->tags & tagset[seltags])
 
 /* typedefs */
 typedef unsigned int uint;
