@@ -213,7 +213,7 @@ main(int argc, char *argv[]) {
 	if(argc < 2 || !strcmp(argv[1], "-h"))
 		die("usage: bgs [-v] [IMAGE]...\n");
 	else if(!strcmp(argv[1], "-v"))
-		die("bgs-"VERSION", ?? 2006-2008 bgs engineers, see LICENSE for details\n");
+		die("bgs-"VERSION", © 2008 bgs engineers, see LICENSE for details\n");
 
 	if(!(dpy = XOpenDisplay(0)))
 		die("bgs: cannot open display\n");
