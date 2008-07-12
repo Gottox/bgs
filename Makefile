@@ -31,7 +31,7 @@ clean:
 dist: clean
 	@echo creating dist tarball
 	@mkdir -p bgs-${VERSION}
-	@cp -R LICENSE Makefile README config.def.h config.mk \
+	@cp -R LICENSE Makefile README config.mk \
 		bgs.1 ${SRC} bgs-${VERSION}
 	@tar -cf bgs-${VERSION}.tar bgs-${VERSION}
 	@gzip bgs-${VERSION}.tar
