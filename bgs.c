@@ -58,8 +58,6 @@ cleanup(void) {
 		imlib_context_set_image(images[i]);
 		imlib_free_image();
 	}
-	imlib_context_set_image(buffer);
-	imlib_free_image();
 	XFreePixmap(dpy, pm);
 }
 
@@ -71,13 +69,13 @@ configurenotify(XEvent *e) {
 		sw = ev->width;
 		sh = ev->height;
 		updategeom();
-		imlib_context_set_image(buffer);
-		imlib_free_image();
-		buffer = imlib_create_image(sw, sh);
 		XFreePixmap(dpy, pm);
 		pm = XCreatePixmap(dpy, root, sw, sh, depth);
+		buffer = imlib_create_image(sw, sh);
 		createbg();
 		drawbg();
+		imlib_context_set_image(buffer);
+		imlib_free_image();
 	}
 }
 
@@ -91,7 +89,8 @@ createbg(void) {
 		imlib_context_set_image(images[j]);
 		w = imlib_image_get_width();
 		h = imlib_image_get_height();
-		tmpimg = imlib_clone_image();
+		if(!(tmpimg = imlib_clone_image()))
+			die("Error: Can't clone image.\n");
 		imlib_context_set_image(tmpimg);
 		if((monitors[i].w > monitors[i].h && w < h) || (monitors[i].w < monitors[i].h && w > h)) {
 			imlib_image_orientate(1);
@@ -102,6 +101,8 @@ createbg(void) {
 		imlib_context_set_image(buffer);
 		imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h, 
 				monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h);
+		imlib_context_set_image(tmpimg);
+		imlib_free_image();
 	}
 }
 
@@ -116,6 +117,7 @@ die(const char *errstr, ...) {
 }
 
 void drawbg(void) {
+	imlib_context_set_blend(0);
 	imlib_context_set_image(buffer);
 	imlib_context_set_drawable(root);
 	imlib_render_image_on_drawable(0, 0);
@@ -128,8 +130,11 @@ void
 run(void) {
 	XEvent ev;
 
+	buffer = imlib_create_image(sw, sh);
 	createbg();
 	drawbg();
+	imlib_context_set_image(buffer);
+	imlib_free_image();
 	while(running) {
 		XNextEvent(dpy, &ev);
 		if(ev.type == ConfigureNotify )
@@ -170,7 +175,6 @@ setup(char *paths[], int c) {
 	imlib_context_set_display(dpy);
 	imlib_context_set_visual(vis);
 	imlib_context_set_colormap(cm);
-	buffer = imlib_create_image(sw, sh);
 }
 
 void
