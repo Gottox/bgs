@@ -4,6 +4,7 @@ bgs \- back ground setter
 .SH SYNOPSIS
 .B bgs
 .RB [ \-v ]
+.RB [ \-x ]
 .RB [ IMAGE1 ... IMAGEN ]
 .SH DESCRIPTION
 The bgs program allows you to tailor the appearance of the background ("root")
@@ -13,6 +14,14 @@ bgs uses imlib2 for image rendering and rotates the images automaticly. It
 is made for dynamic Xinerama/Xrandr setups such as used with notebooks,
 but it works very fine in any setup.
 .P
+.SH OPTIONS
+.TP
+.B \-v
+prints version information to standard output, then exits.
+.TP
+.B \-x
+switches to dynamic mode. bgs will update you're background as soon as
+the root window changes.
 .SH SEE ALSO
 .BR dwm (1)
 .BR xsetroot (1)

@@ -28,7 +28,6 @@ typedef struct {
 /* function declarations */
 static void cleanup(void);
 static void configurenotify(XEvent *e);
-static void createbg(void);
 static void die(const char *errstr, ...);
 static void drawbg(void);
 static void run(void);
@@ -38,7 +37,7 @@ static void updategeom(void);
 /* variables */
 int sx, sy, sw, sh;
 int depth, screen;
-Bool running = True;
+Bool running = False;
 Display *dpy;
 Window root;
 Visual *vis;
@@ -47,7 +46,6 @@ Pixmap pm;
 int nmonitor, nimage;
 Monitor monitors[8];
 Imlib_Image images[LENGTH(monitors)];
-Imlib_Image buffer;
 
 /* function implementations */
 void
@@ -71,19 +69,25 @@ configurenotify(XEvent *e) {
 		updategeom();
 		XFreePixmap(dpy, pm);
 		pm = XCreatePixmap(dpy, root, sw, sh, depth);
-		buffer = imlib_create_image(sw, sh);
-		createbg();
 		drawbg();
-		imlib_context_set_image(buffer);
-		imlib_free_image();
 	}
 }
 
 void
-createbg(void) {
-	int i, j, w, h, tmp;
-	Imlib_Image tmpimg;
+die(const char *errstr, ...) {
+	va_list ap;
 
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
+}
+
+void drawbg(void) {
+	int i, j, w, h, tmp;
+	Imlib_Image tmpimg, buffer;
+
+	buffer = imlib_create_image(sw, sh);
 	imlib_context_set_blend(1);
 	for(j = i = 0; i < nmonitor; i++, j = i % nimage) {
 		imlib_context_set_image(images[j]);
@@ -104,19 +108,6 @@ createbg(void) {
 		imlib_context_set_image(tmpimg);
 		imlib_free_image();
 	}
-}
-
-void
-die(const char *errstr, ...) {
-	va_list ap;
-
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
-	exit(EXIT_FAILURE);
-}
-
-void drawbg(void) {
 	imlib_context_set_blend(0);
 	imlib_context_set_image(buffer);
 	imlib_context_set_drawable(root);
@@ -124,17 +115,15 @@ void drawbg(void) {
 	imlib_context_set_drawable(pm);
 	imlib_render_image_on_drawable(0, 0);
 	XSetWindowBackgroundPixmap(dpy, root, pm);
+	imlib_context_set_image(buffer);
+	imlib_free_image();
 }
 
 void
 run(void) {
 	XEvent ev;
 
-	buffer = imlib_create_image(sw, sh);
-	createbg();
 	drawbg();
-	imlib_context_set_image(buffer);
-	imlib_free_image();
 	while(running) {
 		XNextEvent(dpy, &ev);
 		if(ev.type == ConfigureNotify )
@@ -208,18 +197,23 @@ updategeom(void) {
 
 int
 main(int argc, char *argv[]) {
-	if(argc < 2 || !strcmp(argv[1], "-h"))
-		die("usage: bgs [-v] [IMAGE]...\n");
-	else if(!strcmp(argv[1], "-v"))
-		die("bgs-"VERSION", © 2008 bgs engineers, see LICENSE for details\n");
+	int i;
 
+	for(i = 1; i < argc && argv[i][0] == '-'; i++) {
+		switch(argv[i][1]) {
+		case 'x':
+			running = True; break;
+		case 'v':
+			die("bgs-"VERSION", © 2008 bgs engineers, see LICENSE for details\n");
+		default:
+			die("usage: bgs [-v] [-x] [IMAGE]...\n");
+		}
+	}
 	if(!(dpy = XOpenDisplay(0)))
 		die("bgs: cannot open display\n");
-
-	setup(argv + 1, argc - 1);
+	setup(&argv[i], argc - i);
 	run();
 	cleanup();
-
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
 }
