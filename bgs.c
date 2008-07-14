@@ -58,7 +58,7 @@ die(const char *errstr) {
 
 void
 drawbg(void) {
-	int i, j, w, h, tmp;
+	int i, w, h, tmp;
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
@@ -66,8 +66,8 @@ drawbg(void) {
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_blend(1);
-	for(j = i = 0; i < nmonitor; i++, j = i % nimage) {
-		imlib_context_set_image(images[j]);
+	for(i = 0; i < nmonitor; i++) {
+		imlib_context_set_image(images[i % nimage]);
 		w = imlib_image_get_width();
 		h = imlib_image_get_height();
 		if(!(tmpimg = imlib_clone_image()))
