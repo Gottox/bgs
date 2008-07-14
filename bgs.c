@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
 #ifdef XINERAMA
@@ -23,7 +22,6 @@ typedef struct {
 
 /* function declarations */
 static void cleanup(void);
-static void configurenotify(XEvent *e);
 static void die(const char *errstr, ...);
 static void drawbg(void);
 static void run(void);
@@ -49,19 +47,7 @@ cleanup(void) {
 
 	for(i = 0; i < nimage; i++) {
 		imlib_context_set_image(images[i]);
-		imlib_free_image();
-	}
-}
-
-void
-configurenotify(XEvent *e) {
-	XConfigureEvent *ev = &e->xconfigure;
-
-	if(ev->window == root) {
-		sw = ev->width;
-		sh = ev->height;
-		updategeom();
-		drawbg();
+		imlib_free_image_and_decache();
 	}
 }
 
@@ -75,20 +61,22 @@ die(const char *errstr, ...) {
 	exit(EXIT_FAILURE);
 }
 
-void drawbg(void) {
+void
+drawbg(void) {
 	int i, j, w, h, tmp;
 	static Pixmap pm;
 	static Imlib_Image tmpimg, buffer;
 
 	pm = XCreatePixmap(dpy, root, sw, sh, depth);
-	buffer = imlib_create_image(sw, sh);
+	if(!(buffer = imlib_create_image(sw, sh)))
+		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_blend(1);
 	for(j = i = 0; i < nmonitor; i++, j = i % nimage) {
 		imlib_context_set_image(images[j]);
 		w = imlib_image_get_width();
 		h = imlib_image_get_height();
 		if(!(tmpimg = imlib_clone_image()))
-			die("Error: Can't clone image.\n");
+			die("Error: Cannot clone image.\n");
 		imlib_context_set_image(tmpimg);
 		if((monitors[i].w > monitors[i].h && w < h) || (monitors[i].w < monitors[i].h && w > h)) {
 			imlib_image_orientate(1);
@@ -110,7 +98,7 @@ void drawbg(void) {
 	imlib_render_image_on_drawable(0, 0);
 	XSetWindowBackgroundPixmap(dpy, root, pm);
 	imlib_context_set_image(buffer);
-	imlib_free_image();
+	imlib_free_image_and_decache();
 	XFreePixmap(dpy, pm);
 }
 
@@ -121,8 +109,12 @@ run(void) {
 	drawbg();
 	while(running) {
 		XNextEvent(dpy, &ev);
-		if(ev.type == ConfigureNotify )
-			configurenotify(&ev);
+		if(ev.type == ConfigureNotify) {
+			sw = ev.xconfigure.width;
+			sh = ev.xconfigure.height;
+			updategeom();
+			drawbg();
+		}
 	}
 }
 
@@ -193,7 +185,8 @@ int
 main(int argc, char *argv[]) {
 	int i;
 
-	for(i = 1; i < argc && argv[i][0] == '-'; i++) {
+	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][0] != '\0' &&
+			argv[i][2] == '\0'; i++) {
 		switch(argv[i][1]) {
 		case 'x':
 			running = True; break;
