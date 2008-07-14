@@ -4,7 +4,6 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
 #ifdef XINERAMA
@@ -22,7 +21,7 @@ typedef struct {
 
 /* function declarations */
 static void cleanup(void);
-static void die(const char *errstr, ...);
+static void die(const char *errstr);
 static void drawbg(void);
 static void run(void);
 static void setup(char *images[], int c);
@@ -52,12 +51,8 @@ cleanup(void) {
 }
 
 void
-die(const char *errstr, ...) {
-	va_list ap;
-
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
+die(const char *errstr) {
+	fputs(errstr, stderr);
 	exit(EXIT_FAILURE);
 }
 
