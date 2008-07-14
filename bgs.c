@@ -17,12 +17,8 @@
 #define LENGTH(x)       (sizeof x / sizeof x[0])
 
 /* typedefs */
-typedef unsigned int uint;
-typedef unsigned long ulong;
-
 typedef struct {
-	int x, y;
-	uint w, h;
+	int x, y, w, h;
 } Monitor;
 
 /* function declarations */
@@ -35,17 +31,16 @@ static void setup(char *images[], int c);
 static void updategeom(void);
 
 /* variables */
-int sx, sy, sw, sh;
-int depth, screen;
-Bool running = False;
-Display *dpy;
-Window root;
-Visual *vis;
-Colormap cm;
-Pixmap pm;
-int nmonitor, nimage;
-Monitor monitors[8];
-Imlib_Image images[LENGTH(monitors)];
+static int sx, sy, sw, sh;
+static int depth, screen;
+static Bool running = False;
+static Display *dpy;
+static Window root;
+static Visual *vis;
+static Colormap cm;
+static int nmonitor, nimage;
+static Monitor monitors[8];
+static Imlib_Image images[LENGTH(monitors)];
 
 /* function implementations */
 void
@@ -56,7 +51,6 @@ cleanup(void) {
 		imlib_context_set_image(images[i]);
 		imlib_free_image();
 	}
-	XFreePixmap(dpy, pm);
 }
 
 void
@@ -67,8 +61,6 @@ configurenotify(XEvent *e) {
 		sw = ev->width;
 		sh = ev->height;
 		updategeom();
-		XFreePixmap(dpy, pm);
-		pm = XCreatePixmap(dpy, root, sw, sh, depth);
 		drawbg();
 	}
 }
@@ -85,8 +77,10 @@ die(const char *errstr, ...) {
 
 void drawbg(void) {
 	int i, j, w, h, tmp;
-	Imlib_Image tmpimg, buffer;
+	static Pixmap pm;
+	static Imlib_Image tmpimg, buffer;
 
+	pm = XCreatePixmap(dpy, root, sw, sh, depth);
 	buffer = imlib_create_image(sw, sh);
 	imlib_context_set_blend(1);
 	for(j = i = 0; i < nmonitor; i++, j = i % nimage) {
@@ -117,6 +111,7 @@ void drawbg(void) {
 	XSetWindowBackgroundPixmap(dpy, root, pm);
 	imlib_context_set_image(buffer);
 	imlib_free_image();
+	XFreePixmap(dpy, pm);
 }
 
 void
@@ -157,7 +152,6 @@ setup(char *paths[], int c) {
 	sx = sy = 0;
 	sw = DisplayWidth(dpy, screen);
 	sh = DisplayHeight(dpy, screen);
-	pm = XCreatePixmap(dpy, root, sw, sh, depth);
 	updategeom();
 
 	/* set up Imlib */
