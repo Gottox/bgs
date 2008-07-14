@@ -64,8 +64,8 @@ die(const char *errstr, ...) {
 void
 drawbg(void) {
 	int i, j, w, h, tmp;
-	static Pixmap pm;
-	static Imlib_Image tmpimg, buffer;
+	Pixmap pm;
+	Imlib_Image tmpimg, buffer;
 
 	pm = XCreatePixmap(dpy, root, sw, sh, depth);
 	if(!(buffer = imlib_create_image(sw, sh)))
