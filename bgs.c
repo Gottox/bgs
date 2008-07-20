@@ -154,8 +154,7 @@ updategeom(void) {
 	XineramaScreenInfo *info = NULL;
 
 	/* window area geometry */
-	if(XineramaIsActive(dpy)) {
-		info = XineramaQueryScreens(dpy, &nmonitor);
+	if(XineramaIsActive(dpy) && (info = XineramaQueryScreens(dpy, &nmonitor))) {
 		nmonitor = MIN(nmonitor, LENGTH(monitors));
 		for(i = 0; i < nmonitor; i++) {
 			monitors[i].x = info[i].x_org;
@@ -181,7 +180,7 @@ main(int argc, char *argv[]) {
 	int i;
 
 	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][0] != '\0' &&
-			argv[i][2] == '\0'; i++) {
+			argv[i][2] == '\0'; i++)
 		switch(argv[i][1]) {
 		case 'x':
 			running = True; break;
@@ -190,7 +189,6 @@ main(int argc, char *argv[]) {
 		default:
 			die("usage: bgs [-v] [-x] [IMAGE]...\n");
 		}
-	}
 	if(!(dpy = XOpenDisplay(0)))
 		die("bgs: cannot open display\n");
 	setup(&argv[i], argc - i);
