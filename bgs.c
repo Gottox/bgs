@@ -29,7 +29,6 @@ static void updategeom(void);
 
 /* variables */
 static int sx, sy, sw, sh;
-static int depth, screen;
 static Bool center  = False;
 static Bool running = False;
 static Display *dpy;
@@ -63,7 +62,7 @@ drawbg(void) {
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
-	pm = XCreatePixmap(dpy, root, sw, sh, depth);
+	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy, screen));
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_blend(1);
@@ -120,7 +119,7 @@ run(void) {
 
 void
 setup(char *paths[], int c) {
-	int i;
+	int i, screen;
 
 	/* Loading images */
 	for(nimage = i = 0; i < c && i < LENGTH(images); i++) {
@@ -137,7 +136,6 @@ setup(char *paths[], int c) {
 	/* set up X */
 	screen = DefaultScreen(dpy);
 	vis = DefaultVisual(dpy, screen);
-	depth = DefaultDepth(dpy, screen);
 	cm = DefaultColormap(dpy, screen);
 	root = RootWindow(dpy, screen);
 	XSelectInput(dpy, root, StructureNotifyMask);
