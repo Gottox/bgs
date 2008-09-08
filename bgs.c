@@ -20,22 +20,22 @@ typedef struct {
 } Monitor;
 
 /* function declarations */
-static void cleanup(void);
-static void die(const char *errstr);
-static void drawbg(void);
-static void run(void);
-static void setup(char *images[], int c);
-static void updategeom(void);
+static void cleanup(void);			/* frees images before exit. */
+static void die(const char *errstr);		/* prints errstr to strerr and exits. */
+static void drawbg(void);			/* draws background to root. */
+static void run(void);				/* main loop */
+static void setup(char *images[], int c);	/* sets up imlib and X */
+static void updategeom(void);			/* updates screen and/or Xinerama dimensions */
 
 /* variables */
-static int sx, sy, sw, sh;
-static Bool center  = False;
-static Bool running = False;
+static int sx, sy, sw, sh;			/* geometry of the screen */
+static Bool center  = False;			/* center image instead of rescale */
+static Bool running = False;			
 static Display *dpy;
 static Window root;
 static Visual *vis;
 static Colormap cm;
-static int nmonitor, nimage;
+static int nmonitor, nimage;			/* Amount of monitors/available background images */
 static Monitor monitors[8];
 static Imlib_Image images[LENGTH(monitors)];
 
@@ -62,7 +62,7 @@ drawbg(void) {
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
-	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy, screen));
+	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy, DefaultScreen(dpy)));
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_blend(1);
@@ -156,7 +156,6 @@ updategeom(void) {
 	int i;
 	XineramaScreenInfo *info = NULL;
 
-	/* window area geometry */
 	if(XineramaIsActive(dpy) && (info = XineramaQueryScreens(dpy, &nmonitor))) {
 		nmonitor = MIN(nmonitor, LENGTH(monitors));
 		for(i = 0; i < nmonitor; i++) {
