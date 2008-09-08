@@ -30,6 +30,7 @@ static void updategeom(void);
 /* variables */
 static int sx, sy, sw, sh;
 static int depth, screen;
+static Bool center  = False;
 static Bool running = False;
 static Display *dpy;
 static Window root;
@@ -80,8 +81,12 @@ drawbg(void) {
 			h = tmp;
 		}
 		imlib_context_set_image(buffer);
-		imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h, 
-				monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h);
+		if(center)
+			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
+					(monitors[i].w - w ) / 2, (monitors[i].h - h) / 2, w, h);
+		else
+			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
+					monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h);
 		imlib_context_set_image(tmpimg);
 		imlib_free_image();
 	}
@@ -182,12 +187,14 @@ main(int argc, char *argv[]) {
 	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][0] != '\0' &&
 			argv[i][2] == '\0'; i++)
 		switch(argv[i][1]) {
+		case 'c':
+			center = True; break;
 		case 'x':
 			running = True; break;
 		case 'v':
 			die("bgs-"VERSION", © 2008 bgs engineers, see LICENSE for details\n");
 		default:
-			die("usage: bgs [-v] [-x] [IMAGE]...\n");
+			die("usage: bgs [-v] [-c] [-x] [IMAGE]...\n");
 		}
 	if(!(dpy = XOpenDisplay(0)))
 		die("bgs: cannot open display\n");
