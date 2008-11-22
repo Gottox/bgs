@@ -20,22 +20,24 @@ typedef struct {
 } Monitor;
 
 /* function declarations */
-static void cleanup(void);			/* frees images before exit. */
-static void die(const char *errstr);		/* prints errstr to strerr and exits. */
-static void drawbg(void);			/* draws background to root. */
-static void run(void);				/* main loop */
-static void setup(char *paths[], int c);	/* sets up imlib and X */
-static void updategeom(void);			/* updates screen and/or Xinerama dimensions */
+static void cleanup(void);		/* frees images before exit. */
+static void die(const char *errstr);	/* prints errstr to strerr and exits. */
+static void drawbg(void);		/* draws background to root. */
+static void run(void);			/* main loop */
+static void setup(char *paths[], int c);/* sets up imlib and X */
+static void updategeom(void);		/* updates screen and/or Xinerama
+					   dimensions */
 
 /* variables */
-static int sx, sy, sw, sh;			/* geometry of the screen */
-static Bool center  = False;			/* center image instead of rescale */
-static Bool running = False;			
+static int sx, sy, sw, sh;	/* geometry of the screen */
+static Bool center  = False;	/* center image instead of rescale */
+static Bool running = False;
 static Display *dpy;
 static Window root;
 static Visual *vis;
 static Colormap cm;
-static int nmonitor, nimage;			/* Amount of monitors/available background images */
+static int nmonitor, nimage;	/* Amount of monitors/available background
+				   images */
 static Monitor monitors[8];
 static Imlib_Image images[LENGTH(monitors)];
 
@@ -62,7 +64,8 @@ drawbg(void) {
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
-	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy, DefaultScreen(dpy)));
+	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy,
+				DefaultScreen(dpy)));
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_blend(1);
@@ -73,7 +76,8 @@ drawbg(void) {
 		if(!(tmpimg = imlib_clone_image()))
 			die("Error: Cannot clone image.\n");
 		imlib_context_set_image(tmpimg);
-		if((monitors[i].w > monitors[i].h && w < h) || (monitors[i].w < monitors[i].h && w > h)) {
+		if((monitors[i].w > monitors[i].h && w < h) ||
+				(monitors[i].w < monitors[i].h && w > h)) {
 			imlib_image_orientate(1);
 			tmp = w;
 			w = h;
@@ -82,10 +86,12 @@ drawbg(void) {
 		imlib_context_set_image(buffer);
 		if(center)
 			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
-					(monitors[i].w - w ) / 2, (monitors[i].h - h) / 2, w, h);
+					(monitors[i].w - w ) / 2,
+					(monitors[i].h - h) / 2, w, h);
 		else
 			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
-					monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h);
+					monitors[i].x, monitors[i].y,
+					monitors[i].w, monitors[i].h);
 		imlib_context_set_image(tmpimg);
 		imlib_free_image();
 	}
@@ -126,7 +132,8 @@ setup(char *paths[], int c) {
 		if((images[nimage] = imlib_load_image(paths[i])))
 			nimage++;
 		else {
-			fprintf(stderr, "Warning: Cannot load file `%s`. Ignoring.\n", paths[nimage]);
+			fprintf(stderr, "Warning: Cannot load file `%s`."
+					"Ignoring.\n", paths[nimage]);
 			continue;
 		}
 	}
@@ -156,7 +163,8 @@ updategeom(void) {
 	int i;
 	XineramaScreenInfo *info = NULL;
 
-	if(XineramaIsActive(dpy) && (info = XineramaQueryScreens(dpy, &nmonitor))) {
+	if(XineramaIsActive(dpy) &&
+			(info = XineramaQueryScreens(dpy, &nmonitor))) {
 		nmonitor = MIN(nmonitor, LENGTH(monitors));
 		for(i = 0; i < nmonitor; i++) {
 			monitors[i].x = info[i].x_org;
@@ -189,7 +197,8 @@ main(int argc, char *argv[]) {
 		case 'x':
 			running = True; break;
 		case 'v':
-			die("bgs-"VERSION", © 2008 bgs engineers, see LICENSE for details\n");
+			die("bgs-"VERSION", © 2008 bgs engineers, see"
+					"LICENSE for details\n");
 		default:
 			die("usage: bgs [-v] [-c] [-x] [IMAGE]...\n");
 		}
