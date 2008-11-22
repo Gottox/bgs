@@ -24,7 +24,7 @@ static void cleanup(void);			/* frees images before exit. */
 static void die(const char *errstr);		/* prints errstr to strerr and exits. */
 static void drawbg(void);			/* draws background to root. */
 static void run(void);				/* main loop */
-static void setup(char *images[], int c);	/* sets up imlib and X */
+static void setup(char *paths[], int c);	/* sets up imlib and X */
 static void updategeom(void);			/* updates screen and/or Xinerama dimensions */
 
 /* variables */
