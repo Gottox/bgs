@@ -12,6 +12,7 @@
 
 /* macros */
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))
+#define MAX(a, b)       ((a) > (b) ? (a) : (b))
 #define LENGTH(x)       (sizeof x / sizeof x[0])
 
 /* typedefs */
@@ -60,7 +61,8 @@ die(const char *errstr) {
 
 void
 drawbg(void) {
-	int i, w, h, tmp;
+	int i, w, h, nx, ny, nh, nw, tmp;
+	double factor;
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
@@ -84,14 +86,20 @@ drawbg(void) {
 			h = tmp;
 		}
 		imlib_context_set_image(buffer);
-		if(center)
-			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
-					(monitors[i].w - w ) / 2,
-					(monitors[i].h - h) / 2, w, h);
-		else
-			imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
-					monitors[i].x, monitors[i].y,
-					monitors[i].w, monitors[i].h);
+		if(center) {
+			nw = (monitors[i].w - w) / 2;
+			nh = (monitors[i].h - h) / 2;
+		}
+		else {
+			factor = MAX((double)w / monitors[i].w,
+					(double)h / monitors[i].h);
+			nw = w / factor;
+			nh = h / factor;
+		}
+		nx = monitors[i].x + (monitors[i].w - nw) / 2;
+		ny = monitors[i].y + (monitors[i].h - nh) / 2;
+		imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
+				nx, ny, nw, nh);
 		imlib_context_set_image(tmpimg);
 		imlib_free_image();
 	}
