@@ -70,6 +70,9 @@ drawbg(void) {
 				DefaultScreen(dpy)));
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
+	imlib_context_set_image(buffer);
+	imlib_context_set_color(0,0,0,0);
+	imlib_image_fill_rectangle(0, 0, sw, sh);
 	imlib_context_set_blend(1);
 	for(i = 0; i < nmonitor; i++) {
 		imlib_context_set_image(images[i % nimage]);
