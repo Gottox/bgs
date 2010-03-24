@@ -122,14 +122,18 @@ void
 run(void) {
 	XEvent ev;
 
-	drawbg();
-	while(running) {
+
+	for(;;) {
+		updategeom();
+		drawbg();
+		if(!running)
+			break;
+		imlib_flush_loaders();
 		XNextEvent(dpy, &ev);
 		if(ev.type == ConfigureNotify) {
 			sw = ev.xconfigure.width;
 			sh = ev.xconfigure.height;
-			updategeom();
-			drawbg();
+			imlib_flush_loaders();
 		}
 	}
 }
@@ -140,7 +144,7 @@ setup(char *paths[], int c) {
 
 	/* Loading images */
 	for(nimage = i = 0; i < c && i < LENGTH(images); i++) {
-		if((images[nimage] = imlib_load_image(paths[i])))
+		if((images[nimage] = imlib_load_image_without_cache(paths[i])))
 			nimage++;
 		else {
 			fprintf(stderr, "Warning: Cannot load file `%s`."
@@ -160,7 +164,6 @@ setup(char *paths[], int c) {
 	sx = sy = 0;
 	sw = DisplayWidth(dpy, screen);
 	sh = DisplayHeight(dpy, screen);
-	updategeom();
 
 	/* set up Imlib */
 	imlib_context_set_display(dpy);
@@ -200,20 +203,20 @@ int
 main(int argc, char *argv[]) {
 	int i;
 
-	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][0] != '\0' &&
-			argv[i][2] == '\0'; i++)
+	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][1] != '\0' &&
+			argv[i][1] != '-' && argv[i][2] == '\0'; i++)
 		switch(argv[i][1]) {
 		case 'c':
 			center = True; break;
 		case 'x':
 			running = True; break;
 		case 'v':
-			die("bgs-"VERSION", © 2008 bgs engineers, see"
+			die("bgs-"VERSION", © 2010 bgs engineers, see"
 					"LICENSE for details\n");
 		default:
 			die("usage: bgs [-v] [-c] [-x] [IMAGE]...\n");
 		}
-	if(!(dpy = XOpenDisplay(0)))
+	if(!(dpy = XOpenDisplay(NULL)))
 		die("bgs: cannot open display\n");
 	setup(&argv[i], argc - i);
 	run();
