@@ -147,7 +147,7 @@ setup(char *paths[], int c) {
 		if((images[nimage] = imlib_load_image_without_cache(paths[i])))
 			nimage++;
 		else {
-			fprintf(stderr, "Warning: Cannot load file `%s`."
+			fprintf(stderr, "Warning: Cannot load file `%s`. "
 					"Ignoring.\n", paths[nimage]);
 			continue;
 		}
