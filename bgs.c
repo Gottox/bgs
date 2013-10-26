@@ -32,6 +32,7 @@ static void updategeom(void);		/* updates screen and/or Xinerama
 /* variables */
 static int sx, sy, sw, sh;	/* geometry of the screen */
 static Bool center  = False;	/* center image instead of rescale */
+static Bool rotate = True;
 static Bool running = False;
 static Display *dpy;
 static Window root;
@@ -81,8 +82,8 @@ drawbg(void) {
 		if(!(tmpimg = imlib_clone_image()))
 			die("Error: Cannot clone image.\n");
 		imlib_context_set_image(tmpimg);
-		if((monitors[i].w > monitors[i].h && w < h) ||
-				(monitors[i].w < monitors[i].h && w > h)) {
+		if(rotate && ((monitors[i].w > monitors[i].h && w < h) ||
+				(monitors[i].w < monitors[i].h && w > h))) {
 			imlib_image_orientate(1);
 			tmp = w;
 			w = h;
@@ -210,11 +211,13 @@ main(int argc, char *argv[]) {
 			center = True; break;
 		case 'x':
 			running = True; break;
+		case 'R':
+			rotate = False; break;
 		case 'v':
 			die("bgs-"VERSION", © 2010 bgs engineers, see"
 					"LICENSE for details\n");
 		default:
-			die("usage: bgs [-v] [-c] [-x] [IMAGE]...\n");
+			die("usage: bgs [-v] [-c] [-R] [-x] [IMAGE]...\n");
 		}
 	if(!(dpy = XOpenDisplay(NULL)))
 		die("bgs: cannot open display\n");
