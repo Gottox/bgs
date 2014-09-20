@@ -22,13 +22,8 @@ INCS = -I. -I/usr/include -I${X11INC} -I ${IMLIB2INC}
 LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${XINERAMALIBS} -L${IMLIB2LIB} -lImlib2
 
 # flags
-CPPFLAGS = -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
+CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
 LDFLAGS = -s ${LIBS}
-
-# Solaris
-#CFLAGS = -fast ${INCS} -DVERSION=\"${VERSION}\"
-#LDFLAGS = ${LIBS}
 
 # compiler and linker
 CC = cc
