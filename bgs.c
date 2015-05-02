@@ -2,6 +2,7 @@
  *
  * To understand bgs , start reading main().
  */
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -14,6 +15,9 @@
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))
 #define MAX(a, b)       ((a) > (b) ? (a) : (b))
 #define LENGTH(x)       (sizeof x / sizeof x[0])
+
+/* image modes */
+enum { ModeCenter, ModeZoom, ModeScale, ModeLast };
 
 /* typedefs */
 typedef struct {
@@ -31,7 +35,7 @@ static void updategeom(void);		/* updates screen and/or Xinerama
 
 /* variables */
 static int sx, sy, sw, sh;	/* geometry of the screen */
-static Bool center  = False;	/* center image instead of rescale */
+static unsigned int mode = ModeScale;	/* image mode */
 static Bool rotate = True;
 static Bool running = False;
 static Display *dpy;
@@ -88,18 +92,33 @@ drawbg(void) {
 			h = tmp;
 		}
 		imlib_context_set_image(buffer);
-		if(center) {
+		switch(mode) {
+		case ModeCenter:
 			nw = (monitors[i].w - w) / 2;
 			nh = (monitors[i].h - h) / 2;
-		}
-		else {
+			nx = monitors[i].x + (monitors[i].w - nw) / 2;
+			ny = monitors[i].y + (monitors[i].h - nh) / 2;
+			break;
+		case ModeZoom:
+			nw = monitors[i].w;
+			nh = monitors[i].h;
+			if(w > h && (w / h > (monitors[i].w / monitors[i].h))) {
+				nx = monitors[i].x + (monitors[i].w - nw) / 2;
+				ny = monitors[i].y + (int)ceil(h * nx / w) / 2;
+			}
+			else {
+				ny = monitors[i].y + (monitors[i].h - nh) / 2;
+				nx = monitors[i].x + (int)ceil(w * ny / h) / 2;
+			}
+			break;
+		default: /* ModeScale */
 			factor = MAX((double)w / monitors[i].w,
 					(double)h / monitors[i].h);
 			nw = w / factor;
 			nh = h / factor;
+			nx = monitors[i].x + (monitors[i].w - nw) / 2;
+			ny = monitors[i].y + (monitors[i].h - nh) / 2;
 		}
-		nx = monitors[i].x + (monitors[i].w - nw) / 2;
-		ny = monitors[i].y + (monitors[i].h - nh) / 2;
 		imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
 				nx, ny, nw, nh);
 		imlib_context_set_image(tmpimg);
@@ -208,7 +227,9 @@ main(int argc, char *argv[]) {
 			argv[i][1] != '-' && argv[i][2] == '\0'; i++)
 		switch(argv[i][1]) {
 		case 'c':
-			center = True; break;
+			mode = ModeCenter; break;
+		case 'z':
+			mode = ModeZoom; break;
 		case 'x':
 			running = True; break;
 		case 'R':
@@ -217,7 +238,7 @@ main(int argc, char *argv[]) {
 			die("bgs-"VERSION", © 2010 bgs engineers, see"
 					"LICENSE for details\n");
 		default:
-			die("usage: bgs [-v] [-c] [-R] [-x] [IMAGE]...\n");
+			die("usage: bgs [-v] [-c] [-z] [-R] [-x] [IMAGE]...\n");
 		}
 	if(!(dpy = XOpenDisplay(NULL)))
 		die("bgs: cannot open display\n");
