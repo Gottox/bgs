@@ -36,8 +36,6 @@ static Bool rotate = True;
 static Bool running = False;
 static Display *dpy;
 static Window root;
-static Visual *vis;
-static Colormap cm;
 static int nmonitor, nimage;	/* Amount of monitors/available background
 				   images */
 static Monitor monitors[8];
@@ -141,6 +139,8 @@ run(void) {
 
 void
 setup(char *paths[], int c) {
+	Visual *vis;
+	Colormap cm;
 	int i, screen;
 
 	/* Loading images */
