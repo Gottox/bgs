@@ -26,13 +26,13 @@ typedef struct {
 } Monitor;
 
 /* function declarations */
-static void cleanup(void);		/* frees images before exit. */
-static void die(const char *errstr);	/* prints errstr to strerr and exits. */
-static void drawbg(void);		/* draws background to root. */
-static void run(void);			/* main loop */
-static void setup(char *paths[], int c);/* sets up imlib and X */
-static void updategeom(void);		/* updates screen and/or Xinerama
-					   dimensions */
+static void cleanup(void);                                /* frees images before exit. */
+static void die(const char *errstr);                      /* prints errstr to strerr and exits. */
+static void drawbg(void);                                 /* draws background to root. */
+static void run(void);                                    /* main loop */
+static void setup(char *paths[], int c, const char *col); /* sets up imlib and X */
+static void updategeom(void);                             /* updates screen and/or Xinerama
+                                                             dimensions */
 
 /* variables */
 static int sx, sy, sw, sh;	/* geometry of the screen */
@@ -75,7 +75,6 @@ drawbg(void) {
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_image(buffer);
-	imlib_context_set_color(0,0,0,0);
 	imlib_image_fill_rectangle(0, 0, sw, sh);
 	imlib_context_set_blend(1);
 	for(i = 0; i < nmonitor; i++) {
@@ -158,9 +157,10 @@ run(void) {
 }
 
 void
-setup(char *paths[], int c) {
+setup(char *paths[], int c, const char *col) {
 	Visual *vis;
 	Colormap cm;
+	XColor color;
 	int i, screen;
 
 	/* Loading images */
@@ -186,10 +186,14 @@ setup(char *paths[], int c) {
 	sw = DisplayWidth(dpy, screen);
 	sh = DisplayHeight(dpy, screen);
 
+	if(!XAllocNamedColor(dpy, cm, col, &color, &color))
+		die("Error: Cannot allocate color.\n");
+
 	/* set up Imlib */
 	imlib_context_set_display(dpy);
 	imlib_context_set_visual(vis);
 	imlib_context_set_colormap(cm);
+	imlib_context_set_color(color.red, color.green, color.blue, 255);
 }
 
 void
@@ -223,11 +227,14 @@ updategeom(void) {
 int
 main(int argc, char *argv[]) {
 	int opt;
+	const char *col = NULL;
 
-	while((opt = getopt(argc, argv, "cRvxz")) != -1)
+	while((opt = getopt(argc, argv, "cC:Rvxz")) != -1)
 		switch(opt) {
 		case 'c':
 			mode = ModeCenter; break;
+		case 'C':
+			col = optarg; break;
 		case 'R':
 			rotate = False; break;
 		case 'v':
@@ -239,14 +246,16 @@ main(int argc, char *argv[]) {
 			mode = ModeZoom; break;
 		case '?': /* Fallthrough */
 		default:
-			die("usage: bgs [-v] [-c] [-z] [-R] [-x] [IMAGE]...\n");
+			die("usage: bgs [-v] [-c] [-C hex] [-z] [-R] [-x] [IMAGE]...\n");
 		}
 	argc -= optind;
 	argv += optind;
 
+	if(!col)
+		col = "#000000";
 	if(!(dpy = XOpenDisplay(NULL)))
 		die("bgs: cannot open display\n");
-	setup(argv, argc);
+	setup(argv, argc, col);
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
