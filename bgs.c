@@ -2,6 +2,7 @@
  *
  * To understand bgs , start reading main().
  */
+#include <getopt.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -221,28 +222,31 @@ updategeom(void) {
 
 int
 main(int argc, char *argv[]) {
-	int i;
+	int opt;
 
-	for(i = 1; i < argc && argv[i][0] == '-' && argv[i][1] != '\0' &&
-			argv[i][1] != '-' && argv[i][2] == '\0'; i++)
-		switch(argv[i][1]) {
+	while((opt = getopt(argc, argv, "cRvxz")) != -1)
+		switch(opt) {
 		case 'c':
 			mode = ModeCenter; break;
-		case 'z':
-			mode = ModeZoom; break;
-		case 'x':
-			running = True; break;
 		case 'R':
 			rotate = False; break;
 		case 'v':
 			die("bgs-"VERSION", © 2010 bgs engineers, see"
 					"LICENSE for details\n");
+		case 'x':
+			running = True; break;
+		case 'z':
+			mode = ModeZoom; break;
+		case '?': /* Fallthrough */
 		default:
 			die("usage: bgs [-v] [-c] [-z] [-R] [-x] [IMAGE]...\n");
 		}
+	argc -= optind;
+	argv += optind;
+
 	if(!(dpy = XOpenDisplay(NULL)))
 		die("bgs: cannot open display\n");
-	setup(&argv[i], argc - i);
+	setup(argv, argc);
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
