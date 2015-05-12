@@ -18,12 +18,12 @@ XINERAMALIBS = -L${X11LIB} -lXinerama
 XINERAMAFLAGS = -DXINERAMA
 
 # includes and libs
-INCS = -I. -I/usr/include -I${X11INC} -I ${IMLIB2INC}
-LIBS = -L/usr/lib -lc -lm -L${X11LIB} -lX11 ${XINERAMALIBS} -L${IMLIB2LIB} -lImlib2
+INCS = -I${X11INC} -I ${IMLIB2INC}
+LIBS = -lm -L${X11LIB} -lX11 ${XINERAMALIBS} -L${IMLIB2LIB} -lImlib2 -lm
 
 # flags
-CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-LDFLAGS = -s ${LIBS}
+CFLAGS += -std=c99 -pedantic -Wall ${INCS} -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
+LDFLAGS += ${LIBS}
 
 # compiler and linker
-CC = cc
+CC ?= cc
