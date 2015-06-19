@@ -238,8 +238,9 @@ main(int argc, char *argv[]) {
 		case 'R':
 			rotate = False; break;
 		case 'v':
-			die("bgs-"VERSION", © 2010 bgs engineers, see"
+			printf("bgs-"VERSION", © 2010 bgs engineers, see "
 					"LICENSE for details\n");
+			return 0;
 		case 'x':
 			running = True; break;
 		case 'z':
