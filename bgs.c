@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <Imlib2.h>
 #ifdef XINERAMA
@@ -61,6 +62,50 @@ void
 die(const char *errstr) {
 	fputs(errstr, stderr);
 	exit(EXIT_FAILURE);
+}
+
+void
+getatomprop(Atom atom, Atom *type, unsigned char **data) {
+	int format;
+	unsigned long length, after;
+
+	XGetWindowProperty(dpy, root, atom, 0L, 1L, False, AnyPropertyType,
+			type, &format, &length, &after, data);
+}
+
+/* Taken from hsetroot. */
+Bool
+set_root_atoms(Pixmap pm) {
+	Atom atom_root, atom_eroot, type;
+	unsigned char *data_root, *data_eroot;
+
+	/* Doing this to clean up after old background. */
+	atom_root = XInternAtom(dpy, "_XROOTMAP_ID", True);
+	atom_eroot = XInternAtom(dpy, "ESETROOT_PMAP_ID", True);
+
+	if(atom_root != None && atom_eroot != None) {
+		getatomprop(atom_root, &type, &data_root);
+		if(type == XA_PIXMAP) {
+			getatomprop(atom_eroot, &type, &data_eroot);
+			if(data_root && data_eroot && type == XA_PIXMAP &&
+			   *((Pixmap *) data_root) == *((Pixmap *) data_eroot))
+				XKillClient(dpy, *((Pixmap *) data_root));
+		}
+	}
+
+	/* Setting new background atoms. */
+	atom_root = XInternAtom(dpy, "_XROOTPMAP_ID", False);
+	atom_eroot = XInternAtom(dpy, "ESETROOT_PMAP_ID", False);
+
+	if(atom_root == None || atom_eroot == None)
+		return False;
+
+	XChangeProperty(dpy, root, atom_root, XA_PIXMAP, 32, PropModeReplace,
+			(unsigned char *) &pm, 1);
+	XChangeProperty(dpy, root, atom_eroot, XA_PIXMAP, 32, PropModeReplace,
+			(unsigned char *) &pm, 1);
+
+	return True;
 }
 
 void
@@ -130,10 +175,17 @@ drawbg(void) {
 	imlib_render_image_on_drawable(0, 0);
 	imlib_context_set_drawable(pm);
 	imlib_render_image_on_drawable(0, 0);
+
+	if(!set_root_atoms(pm))
+		fputs("Warning: Could not create atoms\n", stderr);
+
+	XKillClient(dpy, AllTemporary);
+	XSetCloseDownMode(dpy, RetainPermanent);
 	XSetWindowBackgroundPixmap(dpy, root, pm);
+	XClearWindow(dpy, root);
+	XFlush(dpy);
 	imlib_context_set_image(buffer);
 	imlib_free_image_and_decache();
-	XFreePixmap(dpy, pm);
 }
 
 void
