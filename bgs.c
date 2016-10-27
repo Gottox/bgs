@@ -12,7 +12,6 @@
 #include <X11/extensions/Xinerama.h>
 #endif
 
-/* macros */
 #define MIN(a, b)       ((a) < (b) ? (a) : (b))
 #define MAX(a, b)       ((a) > (b) ? (a) : (b))
 #define LENGTH(x)       (sizeof x / sizeof x[0])
@@ -20,22 +19,11 @@
 /* image modes */
 enum { ModeCenter, ModeZoom, ModeScale, ModeLast };
 
-/* structs */
 struct Monitor {
 	int x, y, w, h;
 };
 
-/* function declarations */
-static void cleanup(void);                                /* frees images before exit. */
-static void die(const char *errstr);                      /* prints errstr to strerr and exits. */
-static void drawbg(void);                                 /* draws background to root. */
-static void run(void);                                    /* main loop */
-static void setup(char *paths[], int c, const char *col); /* sets up imlib and X */
-static void updategeom(void);                             /* updates screen and/or Xinerama
-							     dimensions */
-
-/* variables */
-static int sx, sy, sw, sh;		/* geometry of the screen */
+static int sx, sy, sw, sh;		/* screen geometry */
 static unsigned int mode = ModeScale;	/* image mode */
 static Bool rotate = True;
 static Bool running = False;
@@ -46,7 +34,7 @@ static int nmonitor, nimage;	/* Amount of monitors/available background
 static struct Monitor monitors[8];
 static Imlib_Image images[LENGTH(monitors)];
 
-/* function implementations */
+/* free images before exit */
 void
 cleanup(void) {
 	int i;
@@ -63,6 +51,7 @@ die(const char *errstr) {
 	exit(EXIT_FAILURE);
 }
 
+/* draw background to root */
 void
 drawbg(void) {
 	int i, w, h, nx, ny, nh, nw, tmp;
@@ -136,6 +125,36 @@ drawbg(void) {
 	XFreePixmap(dpy, pm);
 }
 
+/* update screen and/or Xinerama dimensions */
+void
+updategeom(void) {
+#ifdef XINERAMA
+	int i;
+	XineramaScreenInfo *info = NULL;
+
+	if(XineramaIsActive(dpy) &&
+	   (info = XineramaQueryScreens(dpy, &nmonitor))) {
+		nmonitor = MIN(nmonitor, LENGTH(monitors));
+		for(i = 0; i < nmonitor; i++) {
+			monitors[i].x = info[i].x_org;
+			monitors[i].y = info[i].y_org;
+			monitors[i].w = info[i].width;
+			monitors[i].h = info[i].height;
+		}
+		XFree(info);
+	}
+	else
+#endif
+	{
+		nmonitor = 1;
+		monitors[0].x = sx;
+		monitors[0].y = sy;
+		monitors[0].w = sw;
+		monitors[0].h = sh;
+	}
+}
+
+/* main loop */
 void
 run(void) {
 	XEvent ev;
@@ -155,6 +174,7 @@ run(void) {
 	}
 }
 
+/* set up imlib and X */
 void
 setup(char *paths[], int c, const char *col) {
 	Visual *vis;
@@ -195,34 +215,6 @@ setup(char *paths[], int c, const char *col) {
 	imlib_context_set_color(color.red, color.green, color.blue, 255);
 }
 
-void
-updategeom(void) {
-#ifdef XINERAMA
-	int i;
-	XineramaScreenInfo *info = NULL;
-
-	if(XineramaIsActive(dpy) &&
-	   (info = XineramaQueryScreens(dpy, &nmonitor))) {
-		nmonitor = MIN(nmonitor, LENGTH(monitors));
-		for(i = 0; i < nmonitor; i++) {
-			monitors[i].x = info[i].x_org;
-			monitors[i].y = info[i].y_org;
-			monitors[i].w = info[i].width;
-			monitors[i].h = info[i].height;
-		}
-		XFree(info);
-	}
-	else
-#endif
-	{
-		nmonitor = 1;
-		monitors[0].x = sx;
-		monitors[0].y = sy;
-		monitors[0].w = sw;
-		monitors[0].h = sh;
-	}
-}
-
 int
 main(int argc, char *argv[]) {
 	int opt;
@@ -249,7 +241,7 @@ main(int argc, char *argv[]) {
 		case 'z':
 			mode = ModeZoom;
 			break;
-		default: /* Fallthrough */
+		default:
 			die("usage: bgs [-v] [-c] [-C hex] [-z] [-R] [-x] [IMAGE]...\n");
 		}
 	argc -= optind;
