@@ -32,10 +32,10 @@ static void drawbg(void);                                 /* draws background to
 static void run(void);                                    /* main loop */
 static void setup(char *paths[], int c, const char *col); /* sets up imlib and X */
 static void updategeom(void);                             /* updates screen and/or Xinerama
-                                                             dimensions */
+							     dimensions */
 
 /* variables */
-static int sx, sy, sw, sh;	/* geometry of the screen */
+static int sx, sy, sw, sh;		/* geometry of the screen */
 static unsigned int mode = ModeScale;	/* image mode */
 static Bool rotate = True;
 static Bool running = False;
@@ -70,8 +70,8 @@ drawbg(void) {
 	Pixmap pm;
 	Imlib_Image tmpimg, buffer;
 
-	pm = XCreatePixmap(dpy, root, sw, sh, DefaultDepth(dpy,
-				DefaultScreen(dpy)));
+	pm = XCreatePixmap(dpy, root, sw, sh,
+			   DefaultDepth(dpy, DefaultScreen(dpy)));
 	if(!(buffer = imlib_create_image(sw, sh)))
 		die("Error: Cannot allocate buffer.\n");
 	imlib_context_set_image(buffer);
@@ -85,7 +85,7 @@ drawbg(void) {
 			die("Error: Cannot clone image.\n");
 		imlib_context_set_image(tmpimg);
 		if(rotate && ((monitors[i].w > monitors[i].h && w < h) ||
-				(monitors[i].w < monitors[i].h && w > h))) {
+		   (monitors[i].w < monitors[i].h && w > h))) {
 			imlib_image_orientate(1);
 			tmp = w;
 			w = h;
@@ -113,14 +113,14 @@ drawbg(void) {
 			break;
 		default: /* ModeScale */
 			factor = MAX((double)w / monitors[i].w,
-					(double)h / monitors[i].h);
+				     (double)h / monitors[i].h);
 			nw = w / factor;
 			nh = h / factor;
 			nx = monitors[i].x + (monitors[i].w - nw) / 2;
 			ny = monitors[i].y + (monitors[i].h - nh) / 2;
 		}
 		imlib_blend_image_onto_image(tmpimg, 0, 0, 0, w, h,
-				nx, ny, nw, nh);
+					     nx, ny, nw, nh);
 		imlib_context_set_image(tmpimg);
 		imlib_free_image();
 	}
@@ -139,7 +139,6 @@ drawbg(void) {
 void
 run(void) {
 	XEvent ev;
-
 
 	for(;;) {
 		updategeom();
@@ -203,7 +202,7 @@ updategeom(void) {
 	XineramaScreenInfo *info = NULL;
 
 	if(XineramaIsActive(dpy) &&
-			(info = XineramaQueryScreens(dpy, &nmonitor))) {
+	   (info = XineramaQueryScreens(dpy, &nmonitor))) {
 		nmonitor = MIN(nmonitor, LENGTH(monitors));
 		for(i = 0; i < nmonitor; i++) {
 			monitors[i].x = info[i].x_org;
@@ -241,8 +240,8 @@ main(int argc, char *argv[]) {
 			rotate = False;
 			break;
 		case 'v':
-			printf("bgs-"VERSION", © 2010 bgs engineers, see "
-					"LICENSE for details\n");
+			printf("bgs-"VERSION", © 2010 bgs engineers, "
+			       "see LICENSE for details\n");
 			return 0;
 		case 'x':
 			running = True;
