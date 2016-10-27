@@ -20,10 +20,10 @@
 /* image modes */
 enum { ModeCenter, ModeZoom, ModeScale, ModeLast };
 
-/* typedefs */
-typedef struct {
+/* structs */
+struct Monitor {
 	int x, y, w, h;
-} Monitor;
+};
 
 /* function declarations */
 static void cleanup(void);                                /* frees images before exit. */
@@ -43,7 +43,7 @@ static Display *dpy;
 static Window root;
 static int nmonitor, nimage;	/* Amount of monitors/available background
 				   images */
-static Monitor monitors[8];
+static struct Monitor monitors[8];
 static Imlib_Image images[LENGTH(monitors)];
 
 /* function implementations */
