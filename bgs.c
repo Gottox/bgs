@@ -242,7 +242,7 @@ main(int argc, char *argv[]) {
 		case 'v':
 			printf("bgs-"VERSION", © 2010 bgs engineers, "
 			       "see LICENSE for details\n");
-			return 0;
+			return EXIT_SUCCESS;
 		case 'x':
 			running = True;
 			break;
