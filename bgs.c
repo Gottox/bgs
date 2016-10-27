@@ -232,21 +232,25 @@ main(int argc, char *argv[]) {
 	while((opt = getopt(argc, argv, "cC:Rvxz")) != -1)
 		switch(opt) {
 		case 'c':
-			mode = ModeCenter; break;
+			mode = ModeCenter;
+			break;
 		case 'C':
-			col = optarg; break;
+			col = optarg;
+			break;
 		case 'R':
-			rotate = False; break;
+			rotate = False;
+			break;
 		case 'v':
 			printf("bgs-"VERSION", © 2010 bgs engineers, see "
 					"LICENSE for details\n");
 			return 0;
 		case 'x':
-			running = True; break;
+			running = True;
+			break;
 		case 'z':
-			mode = ModeZoom; break;
-		case '?': /* Fallthrough */
-		default:
+			mode = ModeZoom;
+			break;
+		default: /* Fallthrough */
 			die("usage: bgs [-v] [-c] [-C hex] [-z] [-R] [-x] [IMAGE]...\n");
 		}
 	argc -= optind;
