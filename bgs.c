@@ -89,7 +89,7 @@ drawbg(void) {
 			ny = monitors[i].y + (monitors[i].h - nh) / 2;
 			break;
 		case ModeZoom:
-			if(w > h && (w / h > (monitors[i].w / monitors[i].h))) {
+			if(((float)w / h) > ((float)monitors[i].w / monitors[i].h)) {
 				nh = monitors[i].h;
 				nw = nh * w / h;
 				nx = monitors[i].x + (monitors[i].w - nw) / 2;
